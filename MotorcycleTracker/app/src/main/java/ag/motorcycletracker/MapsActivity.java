@@ -23,12 +23,14 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
-    private final static String webpage = "https://project-bff.eu-gb.mybluemix.net/bff";
+    private final static String webpage = "https://project-bff.eu-gb.mybluemix.net/gpsValues";
 
     private GoogleMap mMap;
     private double lat;
@@ -130,9 +132,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         @Override
         protected void onPostExecute(final String data) {
-            // Burası düzenlenmeli !!!
-            lat += 0.0001;
-            lng += 0.0001;
+            List<String> gpsValues = Arrays.asList(data.split(","));
+            lat = Double.parseDouble(gpsValues.get(0));
+            lng = Double.parseDouble(gpsValues.get(1));
+            //lat += 0.0001;
+            //lng += 0.0001;
             Log.d("Data", data);
         }
     }
