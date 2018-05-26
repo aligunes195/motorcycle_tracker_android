@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Motorcycle Tracker</string>
+    <string name="app_name">MotoTracker</string>
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_login">Sign in</string>
 

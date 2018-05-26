@@ -1,11 +1,10 @@
 package ag.motorcycletracker;
 
-import android.content.Intent;
+import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.MenuItem;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -30,13 +29,15 @@ import java.util.TimerTask;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
-    private final static String webpage = "https://project-bff.eu-gb.mybluemix.net/gpsValues";
+    private final static String webpage = "https://project-bff.eu-gb.mybluemix.net/001/gpsValues";
 
     private GoogleMap mMap;
     private double lat;
     private double lng;
     private Marker marker;
     private boolean isMapReady;
+    private boolean locFirstRead;
+    private boolean atBackground;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,36 +48,44 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapFragment.getMapAsync(this);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         isMapReady = false;
+        locFirstRead = true;
+        atBackground = false;
+        initLocation();
         new Timer().scheduleAtFixedRate(new TimerTask(){
             @Override
             public void run(){
                 updateLocation();
             }
-        },0,500);
+        },0,3000);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        locFirstRead = true;
+        atBackground = false;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        atBackground = true;
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        lat = -34;
-        lng = 151;
-        LatLng motorLoc = new LatLng(lat, lng);
-        marker = mMap.addMarker(new MarkerOptions().position(motorLoc).title("Your motorcycle location"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(motorLoc));
         isMapReady = true;
     }
 
     public void updateLocation() {
-        if (!isMapReady)
+        if (!isMapReady || atBackground)
             return;
         new GetLatLngTask().execute();
-        Log.d("tagA", "Update latlng : " + lat + ", " + lng);
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                marker.setPosition(new LatLng(lat, lng));
-            }
-        });
+    }
+
+    public void initLocation() {
+        new GetLatLngTask().execute();
     }
 
     public String getHttpData() {
@@ -135,8 +144,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             List<String> gpsValues = Arrays.asList(data.split(","));
             lat = Double.parseDouble(gpsValues.get(0));
             lng = Double.parseDouble(gpsValues.get(1));
-            //lat += 0.0001;
-            //lng += 0.0001;
+            if (locFirstRead && isMapReady) {
+                locFirstRead = false;
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        LatLng motorLoc = new LatLng(lat, lng);
+                        marker = mMap.addMarker(new MarkerOptions().position(motorLoc).title("Your motorcycle location"));
+                        mMap.moveCamera(CameraUpdateFactory.newLatLng(motorLoc));
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(motorLoc, 12.0f));
+                    }
+                });
+            } else if (!locFirstRead) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        marker.setPosition(new LatLng(lat, lng));
+                    }
+                });
+            }
             Log.d("Data", data);
         }
     }

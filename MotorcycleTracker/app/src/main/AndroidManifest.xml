@@ -28,14 +28,13 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
-
         <activity
             android:name=".MapsActivity"
-            android:parentActivityName=".MainActivity"
-            android:label="Motorcycle Tracker"></activity>
+            android:label="MotoTracker"
+            android:parentActivityName=".MainActivity" />
         <activity
             android:name=".LoginActivity"
-            android:label="Motorcycle Tracker">
+            android:label="MotoTracker">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -43,13 +42,15 @@
         </activity>
         <activity
             android:name=".MainActivity"
-            android:label="Motorcycle Tracker">
-        </activity>
+            android:label="MotoTracker"></activity>
         <activity
             android:name=".EmergencyActivity"
-            android:parentActivityName=".MainActivity"
-            android:label="Motorcycle Tracker">
-        </activity>
+            android:label="MotoTracker"
+            android:parentActivityName=".MainActivity"></activity>
+        <activity
+            android:name=".EmergencyAddActivity"
+            android:label="MotoTracker"
+            android:parentActivityName=".EmergencyActivity"></activity>
     </application>
 
 </manifest>
