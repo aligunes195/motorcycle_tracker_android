@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.TextView;
 
 import org.apache.http.HttpResponse;
@@ -33,6 +34,7 @@ public class EmergencyActivity extends AppCompatActivity {
     TextView email2;
     TextView email3;
     Button addEmails;
+    CheckBox thiefModeCheckbox;
     ProgressDialog dialog;
 
     @Override
@@ -46,6 +48,15 @@ public class EmergencyActivity extends AppCompatActivity {
         email2 = (TextView) findViewById(R.id.email2);
         email3 = (TextView) findViewById(R.id.email3);
         dialog = new ProgressDialog(this);
+
+        thiefModeCheckbox = findViewById(R.id.checkbox_thief_mode);
+        thiefModeCheckbox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean checked = ((CheckBox)v).isChecked();
+                new SendThiefMode().execute(checked);
+            }
+        });
 
         addEmails = (Button) findViewById(R.id.add_emergency_emails);
         addEmails.setOnClickListener(new View.OnClickListener() {
@@ -82,7 +93,7 @@ public class EmergencyActivity extends AppCompatActivity {
             StringBuffer sb = new StringBuffer("");
             String l = "";
             String nl = System.getProperty("line.separator");
-            while ((l = in.readLine()) !=null){
+            while ((l = in.readLine()) != null){
                 sb.append(l + nl);
             }
             in.close();
@@ -103,6 +114,25 @@ public class EmergencyActivity extends AppCompatActivity {
             }
         }
         return data;
+    }
+
+    public void thiefModeHttpSend(boolean thiefModeActive) {
+        String urlString = "https://project-bff.eu-gb.mybluemix.net/thief";
+        try
+        {
+            String data = "?constant=0";
+            if (thiefModeActive)
+                data = "?constant=1";
+            HttpClient client = new DefaultHttpClient();
+            URI website = new URI(urlString + data);
+            HttpGet request = new HttpGet();
+            request.setURI(website);
+            client.execute(request);
+        }
+        catch (Exception e)
+        {
+            Log.d("HttpException", e.getMessage());
+        }
     }
 
     private String[] renderData(String data) {
@@ -158,6 +188,28 @@ public class EmergencyActivity extends AppCompatActivity {
                 description.setText("These are contact emails that are registered:");
                 addEmails.setVisibility(View.INVISIBLE);
             }
+        }
+    }
+
+    public class SendThiefMode extends AsyncTask<Boolean, Void, String> {
+
+        @Override
+        protected void onPreExecute() {
+            dialog.setCancelable(false);
+            dialog.setTitle("Setting info");
+            dialog.show();
+        }
+
+        @Override
+        protected String doInBackground(Boolean... params) {
+            thiefModeHttpSend(params[0]);
+            return "Executed";
+        }
+
+        @Override
+        protected void onPostExecute(String param) {
+            if (dialog.isShowing())
+                dialog.dismiss();
         }
     }
 }
